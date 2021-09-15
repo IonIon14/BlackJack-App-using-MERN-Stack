@@ -3,13 +3,21 @@ const app = express();
 const http = require("http");
 const cors = require("cors");
 const server = http.createServer(app);
-const { Server } = require("socket.io");
-const io = new Server(server);
 
+const newGame = require("./lib/blackjack");
+const session = new Set();
+const game = newGame();
 const { PORT } = require("./data");
 const { addUser, removeUser, getUser, getUsersInRoom } = require("./users.js");
-
 const path = require("path");
+
+const io = require("socket.io")(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
 
 app.use(cors());
 
@@ -65,6 +73,47 @@ io.on("connection", (socket) => {
         room: user.room,
         users: getUsersInRoom(user.room),
       });
+    }
+  });
+
+  if (game.inProgress()) {
+    socket.emit("game", game.toJson());
+  }
+
+  socket.on("deal", function () {
+    game.joinTable(socket.id);
+
+    if (!game.inProgress()) {
+      game.startRound();
+    }
+
+    io.emit("game", game.toJson());
+  });
+
+  socket.on("hit", function () {
+    if (game.inProgress()) {
+      game.hit(socket.id);
+      io.emit("game", game.toJson());
+    }
+    if (game.winnerDeclared()) {
+      setTimeout(function () {
+        game.startRound();
+        io.emit("game", game.toJson());
+      }, 3000);
+    }
+  });
+
+  socket.on("stand", function () {
+    if (game.inProgress()) {
+      game.stand(socket.id);
+      io.emit("game", game.toJson());
+    }
+
+    if (game.winnerDeclared()) {
+      setTimeout(function () {
+        game.startRound();
+        io.emit("game", game.toJson());
+      }, 3000);
     }
   });
 });

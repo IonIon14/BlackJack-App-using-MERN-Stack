@@ -5,7 +5,10 @@
 }
 
 .backgroundPlay {
-    background-image: url("../../assets/backgrounds/blackjack-board.jpg");
+    background-image: url("../../assets/backgrounds/background.jpg");
+    background-size: cover;
+
+    object-fit: cover;
 }
 
 /* Game.js Top Row */
@@ -14,6 +17,13 @@
 /* Game Buttons */
 /* Spinner */
 /* Chat Box */
+
+.cards {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+}
 
 .Card {
     width: 6rem;
@@ -26,6 +36,7 @@
     justify-content: space-between;
     padding: 0 60px;
     height: 100px;
+    color: white;
     > img {
         width: 7%;
         margin: 0;
@@ -35,10 +46,12 @@
         margin-top: 10px;
         font-size: 1.8rem;
         padding-top: 2%;
+        color: white;
     }
 }
 .topInfoText {
     font-size: 2rem;
+    color: white;
     margin: 0;
 }
 .player1Deck {
@@ -72,7 +85,8 @@
 .middleInfo {
     display: flex;
     flex-direction: row;
-    justify-content: space-around;
+    justify-content: center;
+    gap: 40px;
     > button {
         align-self: center;
     }
@@ -227,12 +241,11 @@
 }
 .chat-head {
     width: inherit;
-    height: 45px;
     background: #2c3e50;
     border-radius: 5px 5px 0px 0px;
     h2 {
         color: white;
-        padding-top: 5px;
+
         display: inline-block;
     }
     span {

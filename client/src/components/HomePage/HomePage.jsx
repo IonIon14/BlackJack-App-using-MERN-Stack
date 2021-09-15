@@ -3,9 +3,17 @@ import "./HomePage.scss";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import randomCodeGenerator from "../../utils/randomCode";
-
+import { socket } from "../socket/socket";
+import useSound from "use-sound";
+import hitCardSound from "../../assets/sounds/hit_sound.mp3";
 const HomePage = () => {
   const [roomCode, setRoomCode] = useState("");
+  const [isSoundMuted, setIsSoundMuted] = useState(false);
+  const [playHitSound] = useSound(hitCardSound);
+
+  const dealMeIn = () => {
+    socket.emit("deal");
+  };
 
   return (
     <div className="home-page">
@@ -22,12 +30,28 @@ const HomePage = () => {
             onChange={(e) => setRoomCode(e.target.value)}
           />
           <Link to={`/play?roomCode=${roomCode}`}>
-            <button className="game-button green">JOIN GAME</button>
+            <button
+              className="game-button green"
+              onClick={() => {
+                setIsSoundMuted(!isSoundMuted);
+                if (!isSoundMuted) playHitSound();
+              }}
+            >
+              JOIN GAME
+            </button>
           </Link>
           <h1>OR</h1>
           <div className="homepage-create">
             <Link to={`/play?roomCode=${randomCodeGenerator(5)}`}>
-              <button className="game-button orange">CREATE GAME</button>
+              <button
+                className="game-button orange"
+                onClick={() => {
+                  setIsSoundMuted(!isSoundMuted);
+                  if (!isSoundMuted) playHitSound();
+                }}
+              >
+                CREATE GAME
+              </button>
             </Link>
           </div>
         </div>

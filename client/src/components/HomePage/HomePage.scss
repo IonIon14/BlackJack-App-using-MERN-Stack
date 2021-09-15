@@ -1,11 +1,23 @@
+$sm: 576px;
+$md: 768px;
+$lg: 992px;
+$xl: 1200px;
+
 .home-page {
     background-image: url("../../assets/backgrounds/homepage.jpg");
     background-size: cover;
     margin: 0;
     height: 100vh;
+
     .homepage-menu {
         position: relative;
         top: 120px;
+
+        @media screen and (max-width: $sm) {
+            flex-direction: column;
+            position: relative;
+            top: 120px;
+        }
 
         .homepage-form {
             display: flex;
@@ -17,6 +29,10 @@
                 line-height: 1.5em;
                 height: 40px;
                 align-self: center;
+            }
+
+            @media screen and (max-width: $sm) {
+                flex-direction: column;
             }
         }
 

@@ -14,14 +14,7 @@ const Hand = ({ title, cards }) => {
       {getTitle()}
       <div className="cardContainer">
         {cards.map((card, index) => {
-          return (
-            <Card
-              key={index}
-              value={card.value}
-              imageFront={card.imageFront}
-              hidden={card.isHidden}
-            />
-          );
+          return <Card key={index} value={card.value} suit={card.suit} />;
         })}
       </div>
     </div>
