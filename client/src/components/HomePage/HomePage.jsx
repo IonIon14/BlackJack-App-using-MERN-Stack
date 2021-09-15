@@ -3,17 +3,12 @@ import "./HomePage.scss";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import randomCodeGenerator from "../../utils/randomCode";
-import { socket } from "../socket/socket";
 import useSound from "use-sound";
 import hitCardSound from "../../assets/sounds/hit_sound.mp3";
 const HomePage = () => {
   const [roomCode, setRoomCode] = useState("");
   const [isSoundMuted, setIsSoundMuted] = useState(false);
   const [playHitSound] = useSound(hitCardSound);
-
-  const dealMeIn = () => {
-    socket.emit("deal");
-  };
 
   return (
     <div className="home-page">

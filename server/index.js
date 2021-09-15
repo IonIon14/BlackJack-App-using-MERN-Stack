@@ -75,47 +75,6 @@ io.on("connection", (socket) => {
       });
     }
   });
-
-  if (game.inProgress()) {
-    socket.emit("game", game.toJson());
-  }
-
-  socket.on("deal", function () {
-    game.joinTable(socket.id);
-
-    if (!game.inProgress()) {
-      game.startRound();
-    }
-
-    io.emit("game", game.toJson());
-  });
-
-  socket.on("hit", function () {
-    if (game.inProgress()) {
-      game.hit(socket.id);
-      io.emit("game", game.toJson());
-    }
-    if (game.winnerDeclared()) {
-      setTimeout(function () {
-        game.startRound();
-        io.emit("game", game.toJson());
-      }, 3000);
-    }
-  });
-
-  socket.on("stand", function () {
-    if (game.inProgress()) {
-      game.stand(socket.id);
-      io.emit("game", game.toJson());
-    }
-
-    if (game.winnerDeclared()) {
-      setTimeout(function () {
-        game.startRound();
-        io.emit("game", game.toJson());
-      }, 3000);
-    }
-  });
 });
 
 if (process.env.NODE_ENV === "production") {

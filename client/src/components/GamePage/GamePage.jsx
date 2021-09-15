@@ -6,7 +6,6 @@ import cardPack from "../../utils/cardPack";
 import shuffleCards from "../../utils/shuffleCards";
 import io from "socket.io-client";
 import queryString from "query-string";
-import Spinner from "../Spinner/Spinner";
 import useSound from "use-sound";
 import Hand from "../Hand/Hand";
 import bgMusic from "../../assets/sounds/background_music.mp3";
@@ -507,7 +506,6 @@ const GamePage = (props) => {
                             title={`Player2's Hand (${player2Score})`}
                             cards={player2Deck}
                           />
-                          {turn === "Player 2" && <Spinner />}
                         </div>
 
                         <div
@@ -613,8 +611,6 @@ const GamePage = (props) => {
                             title={`Player1's Hand (${player1Score})`}
                             cards={player1Deck}
                           />
-
-                          {turn === "Player 1" && <Spinner />}
                         </div>
 
                         <div
