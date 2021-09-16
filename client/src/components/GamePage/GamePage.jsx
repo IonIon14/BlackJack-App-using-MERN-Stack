@@ -37,7 +37,7 @@ const GamePage = (props) => {
       timeout: 10000,
       transports: ["websocket"],
     };
-    socket = io(ENDPOINT, {
+    socket = io("/", {
       withCredentials: true,
       ...connectionOptions,
     });
