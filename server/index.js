@@ -82,6 +82,6 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-server.listen(PORT, () => {
+server.listen(process.env.PORT || 5000, () => {
   console.log(`listening on *:${PORT}`);
 });
