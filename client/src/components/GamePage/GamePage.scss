@@ -51,6 +51,7 @@
         font-size: 1.8rem;
         padding-top: 2%;
         color: white;
+        font-family: Georgia, "Times New Roman", Times, serif;
     }
 }
 .topInfoText {
@@ -62,6 +63,7 @@
     display: flex;
     flex-direction: row;
     align-items: center;
+    font-family: Georgia, "Times New Roman", Times, serif;
     > img {
         transition: transform 350ms;
         &:hover {
@@ -74,6 +76,7 @@
     display: flex;
     flex-direction: row-reverse;
     align-items: center;
+    font-family: Georgia, "Times New Roman", Times, serif;
     > img {
         transition: transform 350ms;
         &:hover {
@@ -93,6 +96,13 @@
     gap: 40px;
     > button {
         align-self: center;
+    }
+
+    .card-back {
+        width: 6rem;
+
+        cursor: pointer;
+        float: right;
     }
 }
 .game-button {

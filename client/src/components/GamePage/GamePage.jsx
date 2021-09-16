@@ -37,7 +37,7 @@ const GamePage = (props) => {
       timeout: 10000,
       transports: ["websocket"],
     };
-    socket = io("/", {
+    socket = io(ENDPOINT, {
       withCredentials: true,
       ...connectionOptions,
     });
@@ -170,6 +170,99 @@ const GamePage = (props) => {
         player1Deck: [...player1Deck],
         player2Deck: [...player2Deck],
       });
+    }
+  };
+
+  const calculate = (cards, setScore) => {
+    let total = 0;
+    cards.forEach((card) => {
+      if (card.value !== "A") {
+        switch (card.value) {
+          case "K":
+            total += 10;
+            break;
+          case "Q":
+            total += 10;
+            break;
+          case "J":
+            total += 10;
+            break;
+          default:
+            total += Number(card.value);
+            break;
+        }
+      }
+    });
+    const aces = cards.filter((card) => {
+      return card.value === "A";
+    });
+    aces.forEach((card) => {
+      if (total + 11 > 21) {
+        total += 1;
+      } else if (total + 11 === 21) {
+        if (aces.length > 1) {
+          total += 1;
+        } else {
+          total += 11;
+        }
+      } else {
+        total += 11;
+      }
+    });
+    setScore(total);
+  };
+
+  const hit = (dealer) => {
+    drawCard(dealer);
+    playHitSound();
+
+    if (dealer === "Player 1") {
+      socket.emit("updateGameState", {
+        gameOver: false,
+        turn: "Player 2",
+        player1Deck: [...player1Deck],
+        player2Deck: [...player2Deck],
+        player1Score,
+        player2Score,
+      });
+    } else if (dealer === "Player 2") {
+      socket.emit("updateGameState", {
+        gameOver: false,
+        turn: "Player 1",
+        player1Deck: [...player1Deck],
+        player2Deck: [...player2Deck],
+        player1Score,
+        player2Score,
+      });
+    }
+  };
+
+  const stand = () => {
+    buttonState.hitDisabled = true;
+    buttonState.standDisabled = true;
+    buttonState.resetDisabled = false;
+    if (turn === "Player 1") {
+      socket.emit("updateGameState", {
+        gameOver: false,
+        turn: "Player 2",
+        player1Deck: [...player1Deck],
+        player2Deck: [...player2Deck],
+        player1StandClick: true,
+      });
+    }
+    if (turn === "Player 2") {
+      socket.emit("updateGameState", {
+        gameOver: false,
+        turn: "Player 1",
+        player1Deck: [...player1Deck],
+        player2Deck: [...player2Deck],
+        player2StandClick: true,
+      });
+    }
+    if (player1StandClick && player1StandClick) {
+      setTimeout(() => {
+        checkWin();
+      }, 1000);
     }
   };
 
@@ -343,113 +436,6 @@ const GamePage = (props) => {
     });
   };
 
-  const calculate = (cards, setScore) => {
-    let total = 0;
-    cards.forEach((card) => {
-      if (card.value !== "A") {
-        switch (card.value) {
-          case "K":
-            total += 10;
-            break;
-          case "Q":
-            total += 10;
-            break;
-          case "J":
-            total += 10;
-            break;
-          default:
-            total += Number(card.value);
-            break;
-        }
-      }
-    });
-    const aces = cards.filter((card) => {
-      return card.value === "A";
-    });
-    aces.forEach((card) => {
-      if (total + 11 > 21) {
-        total += 1;
-      } else if (total + 11 === 21) {
-        if (aces.length > 1) {
-          total += 1;
-        } else {
-          total += 11;
-        }
-      } else {
-        total += 11;
-      }
-    });
-    setScore(total);
-  };
-
-  const hit = (dealer) => {
-    drawCard(dealer);
-    playHitSound();
-
-    if (dealer === "Player 1") {
-      socket.emit("updateGameState", {
-        gameOver: false,
-        turn: "Player 2",
-        player1Deck: [...player1Deck],
-        player2Deck: [...player2Deck],
-        player1Score,
-        player2Score,
-      });
-    } else if (dealer === "Player 2") {
-      socket.emit("updateGameState", {
-        gameOver: false,
-        turn: "Player 1",
-        player1Deck: [...player1Deck],
-        player2Deck: [...player2Deck],
-        player1Score,
-        player2Score,
-      });
-    }
-  };
-
-  const stand = () => {
-    buttonState.hitDisabled = true;
-    buttonState.standDisabled = true;
-    buttonState.resetDisabled = false;
-    if (turn === "Player 1") {
-      socket.emit("updateGameState", {
-        gameOver: false,
-        turn: "Player 2",
-        player1Deck: [...player1Deck],
-        player2Deck: [...player2Deck],
-        player1StandClick: true,
-      });
-    }
-    if (turn === "Player 2") {
-      socket.emit("updateGameState", {
-        gameOver: false,
-        turn: "Player 1",
-        player1Deck: [...player1Deck],
-        player2Deck: [...player2Deck],
-        player2StandClick: true,
-      });
-    }
-    if (player1StandClick && player1StandClick) {
-      setTimeout(() => {
-        checkWin();
-      }, 1000);
-    }
-  };
-
-  console.log("Player 1 deck is:", player1Deck);
-  console.log("Player 2 deck is:", player2Deck);
-
-  console.log("Player 1 score is:", player1Score);
-  console.log("Player 2 score is:", player2Score);
-
-  console.log("Deck is:", deck);
-  console.log(currentUser);
-
-  console.log("Player 1 stand;", player1StandClick);
-  console.log("Player 2 stand:", player2StandClick);
-
-  // io.connect(ENDPOINT).emit("updateGameState");
-
   return (
     <div className="Game backgroundPlay">
       {!roomFull ? (
@@ -553,6 +539,11 @@ const GamePage = (props) => {
                           >
                             STAND
                           </button>
+                          <img
+                            className="card-back"
+                            src={require(`../../assets/card-back.jpg`).default}
+                            alt="card-back"
+                          />
                         </div>
                         <br />
                         <div
@@ -610,6 +601,11 @@ const GamePage = (props) => {
                           >
                             STAND
                           </button>
+                          <img
+                            className="card-back"
+                            src={require(`../../assets/card-back.jpg`).default}
+                            alt="card-back"
+                          />
                         </div>
                         <br />
                         <div
