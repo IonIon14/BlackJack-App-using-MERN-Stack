@@ -29,7 +29,6 @@ const GamePage = (props) => {
   const [users, setUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState("");
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState([]);
 
   useEffect(() => {
     const connectionOptions = {
@@ -38,7 +37,7 @@ const GamePage = (props) => {
       timeout: 10000,
       transports: ["websocket"],
     };
-    socket = io("localhost:8800", {
+    socket = io(ENDPOINT, {
       withCredentials: true,
       ...connectionOptions,
     });
@@ -61,15 +60,15 @@ const GamePage = (props) => {
   const [player1Deck, setPlayer1Deck] = useState([]);
   const [player1Score, setPlayer1Score] = useState(0);
   const [player1Count, setPlayer1Count] = useState(0);
+  const [player1StandClick, setPlayer1StandClick] = useState(false);
 
   const [player2Deck, setPlayer2Deck] = useState([]);
   const [player2Score, setPlayer2Score] = useState(0);
   const [player2Count, setPlayer2Count] = useState(0);
+  const [player2StandClick, setPlayer2StandClick] = useState(false);
 
   const [turn, setTurn] = useState("");
-  const [gameState, setGameState] = useState("initGameState");
 
-  const [isChatBoxHidden, setIsChatBoxHidden] = useState(true);
   const [isSoundMuted, setIsSoundMuted] = useState(false);
   const [isMusicMuted, setIsMusicMuted] = useState(true);
 
@@ -144,7 +143,8 @@ const GamePage = (props) => {
 
   const checkWin = () => {
     if (
-      (player1Score > player2Score && player1Score <= 21) ||
+      (player1Score > player2Score && player1Score < 21) ||
+      player1Score === 21 ||
       player2Score > 21
     ) {
       setMessage("Player 1 won");
@@ -188,7 +188,7 @@ const GamePage = (props) => {
       player1Score,
       player2Score,
     });
-  }, [gameState]);
+  }, []);
 
   useEffect(() => {
     calculate(player1Deck, setPlayer1Score);
@@ -206,8 +206,9 @@ const GamePage = (props) => {
         buttonState.hitDisabled = true;
         setButtonState({ ...buttonState });
         setWinner(turn);
+
         socket.emit("updateGameState", {
-          gameOver: false,
+          gameOver: true,
           turn: "Player 1",
           player1Deck: [...player1Deck],
           player2Deck: [...player2Deck],
@@ -224,14 +225,25 @@ const GamePage = (props) => {
         buttonState.hitDisabled = true;
         setButtonState({ ...buttonState });
         setWinner(turn);
-        socket.emit("updateGameState", {
-          gameOver: false,
-          turn: "Player 2",
-          player1Deck: [...player1Deck],
-          player2Deck: [...player2Deck],
-        });
-      } else if (player2Score > 21) {
-        bust(turn);
+        setTimeout(() => {
+          socket.emit("updateGameState", {
+            gameOver: true,
+            turn: "Player 2",
+            player1Deck: [...player1Deck],
+            player2Deck: [...player2Deck],
+          });
+        }, 1000);
+      } else if (player1Score >= 21 || player2Score >= 21) {
+        setTimeout(() => {
+          checkWin();
+          socket.emit("updateGameState", {
+            gameOver: true,
+            player1Deck: [...player1Deck],
+            player2Deck: [...player2Deck],
+            player1Score,
+            player2Score,
+          });
+        }, 1000);
       }
     }
   }, [buttonState, player2Score, turn]);
@@ -245,18 +257,22 @@ const GamePage = (props) => {
         player1Deck,
         player1Count,
         player1Score,
+        player1StandClick,
         player2Deck,
         player2Count,
         player2Score,
+        player2StandClick,
       }) => {
         setGameOver(gameOver);
         setTurn(turn);
         setPlayer1Deck(player1Deck);
         setPlayer1Count(player1Count);
         setPlayer1Score(player1Score);
+        setPlayer1StandClick(player1StandClick);
         setPlayer2Deck(player2Deck);
         setPlayer2Count(player2Count);
         setPlayer2Score(player2Score);
+        setPlayer2StandClick(player2StandClick);
       }
     );
 
@@ -269,9 +285,11 @@ const GamePage = (props) => {
         player1Deck,
         player1Count,
         player1Score,
+        player1StandClick,
         player2Deck,
         player2Count,
         player2Score,
+        player2StandClick,
       }) => {
         gameOver && setGameOver(gameOver);
         gameOver === true && playGameOverSound();
@@ -280,9 +298,11 @@ const GamePage = (props) => {
         player1Deck && setPlayer1Deck(player1Deck);
         player1Count && setPlayer1Count(player1Count);
         player1Score && setPlayer1Score(player1Score);
+        player1StandClick && setPlayer1StandClick(player1StandClick);
         player2Deck && setPlayer2Deck(player2Deck);
         player2Count && setPlayer2Count(player2Count);
         player2Score && setPlayer2Score(player2Score);
+        player2StandClick && setPlayer2StandClick(player2StandClick);
       }
     );
 
@@ -292,17 +312,6 @@ const GamePage = (props) => {
 
     socket.on("currentUserData", ({ name }) => {
       setCurrentUser(name);
-    });
-
-    socket.on("message", (message) => {
-      setMessages((messages) => [...messages, message]);
-
-      const chatBody = document.querySelector(".chat-body");
-      chatBody.scrollTop = chatBody.scrollHeight;
-    });
-
-    socket.on("game", (game) => {
-      setGameState(game);
     });
   }, []);
 
@@ -330,26 +339,6 @@ const GamePage = (props) => {
       player1Score,
       player2Score,
     });
-  };
-
-  const toggleChatBox = () => {
-    const chatBody = document.querySelector(".chat-body");
-    if (isChatBoxHidden) {
-      chatBody.style.display = "block";
-      setIsChatBoxHidden(false);
-    } else {
-      chatBody.style.display = "none";
-      setIsChatBoxHidden(true);
-    }
-  };
-
-  const sendMessage = (event) => {
-    event.preventDefault();
-    if (message) {
-      socket.emit("sendMessage", { message: message }, () => {
-        setMessage("");
-      });
-    }
   };
 
   const calculate = (cards, setScore) => {
@@ -401,6 +390,8 @@ const GamePage = (props) => {
         turn: "Player 2",
         player1Deck: [...player1Deck],
         player2Deck: [...player2Deck],
+        player1Score,
+        player2Score,
       });
     } else if (dealer === "Player 2") {
       socket.emit("updateGameState", {
@@ -408,6 +399,8 @@ const GamePage = (props) => {
         turn: "Player 1",
         player1Deck: [...player1Deck],
         player2Deck: [...player2Deck],
+        player1Score,
+        player2Score,
       });
     }
   };
@@ -416,16 +409,42 @@ const GamePage = (props) => {
     buttonState.hitDisabled = true;
     buttonState.standDisabled = true;
     buttonState.resetDisabled = false;
-    checkWin();
+    if (turn === "Player 1") {
+      socket.emit("updateGameState", {
+        gameOver: false,
+        turn: "Player 2",
+        player1Deck: [...player1Deck],
+        player2Deck: [...player2Deck],
+        player1StandClick: true,
+      });
+    }
+    if (turn === "Player 2") {
+      socket.emit("updateGameState", {
+        gameOver: false,
+        turn: "Player 1",
+        player1Deck: [...player1Deck],
+        player2Deck: [...player2Deck],
+        player2StandClick: true,
+      });
+    }
+    if (player1StandClick && player1StandClick) {
+      setTimeout(() => {
+        checkWin();
+      }, 1000);
+    }
   };
 
   console.log("Player 1 deck is:", player1Deck);
   console.log("Player 2 deck is:", player2Deck);
 
   console.log("Player 1 score is:", player1Score);
+  console.log("Player 2 score is:", player2Score);
 
   console.log("Deck is:", deck);
   console.log(currentUser);
+
+  console.log("Player 1 stand;", player1StandClick);
+  console.log("Player 2 stand:", player2StandClick);
 
   // io.connect(ENDPOINT).emit("updateGameState");
 
@@ -484,7 +503,7 @@ const GamePage = (props) => {
           {users.length === 2 && (
             <>
               {gameOver ? (
-                <div>
+                <div className="game-over-status">
                   {winner !== "" && (
                     <>
                       <h1>GAME OVER</h1>
@@ -526,7 +545,9 @@ const GamePage = (props) => {
 
                           <button
                             className="game-button orange"
-                            onClick={() => stand()}
+                            onClick={() => {
+                              stand();
+                            }}
                           >
                             STAND
                           </button>
@@ -546,56 +567,6 @@ const GamePage = (props) => {
                           />
                         </div>
                       </div>
-                      <div className="chatBoxWrapper">
-                        <div className="chat-box chat-box-player1">
-                          <div className="chat-head">
-                            <h2>Chat Box</h2>
-                            {!isChatBoxHidden ? (
-                              <span
-                                onClick={() => toggleChatBox}
-                                class="material-icons"
-                              >
-                                X
-                              </span>
-                            ) : (
-                              <span
-                                onClick={() => toggleChatBox}
-                                class="material-icons"
-                              >
-                                X
-                              </span>
-                            )}
-                          </div>
-                          <div className="chat-body">
-                            <div className="msg-insert">
-                              {messages.map(
-                                (msg) =>
-                                  msg.user === "Player 2" && (
-                                    <div className="msg-receive">
-                                      {msg.text}
-                                    </div>
-                                  ) &&
-                                  msg.user === "Player 1" && (
-                                    <div className="msg-send">{msg.text}</div>
-                                  )
-                              )}
-                            </div>
-                            <div className="chat-text">
-                              <input
-                                type="text"
-                                placeholder="Type a message..."
-                                value={message}
-                                onChange={(event) =>
-                                  setMessage(event.target.value)
-                                }
-                                onKeyPress={(event) =>
-                                  event.key === "Enter" && sendMessage(event)
-                                }
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>{" "}
                     </>
                   )}
 
@@ -631,7 +602,9 @@ const GamePage = (props) => {
 
                           <button
                             className="game-button orange"
-                            onClick={() => stand()}
+                            onClick={() => {
+                              stand();
+                            }}
                           >
                             STAND
                           </button>
@@ -649,56 +622,6 @@ const GamePage = (props) => {
                             title={`Player2's Hand (${player2Score})`}
                             cards={player2Deck}
                           />
-                        </div>
-                      </div>
-                      <div className="chatBoxWrapper">
-                        <div className="chat-box chat-box-player2">
-                          <div className="chat-head">
-                            <h2>Chat Box</h2>
-                            {!isChatBoxHidden ? (
-                              <span
-                                onClick={() => toggleChatBox()}
-                                class="material-icons"
-                              >
-                                X
-                              </span>
-                            ) : (
-                              <span
-                                onClick={() => toggleChatBox()}
-                                class="material-icons"
-                              >
-                                X
-                              </span>
-                            )}
-                          </div>
-                          <div className="chat-body">
-                            <div className="msg-insert">
-                              {messages.map(
-                                (msg) =>
-                                  msg.user === "Player 1" && (
-                                    <div className="msg-receive">
-                                      {msg.text}
-                                    </div>
-                                  ) &&
-                                  msg.user === "Player 2" && (
-                                    <div className="msg-send">{msg.text}</div>
-                                  )
-                              )}
-                            </div>
-                            <div className="chat-text">
-                              <input
-                                type="text"
-                                placeholder="Type a message..."
-                                value={message}
-                                onChange={(event) =>
-                                  setMessage(event.target.value)
-                                }
-                                onKeyPress={(event) =>
-                                  event.key === "Enter" && sendMessage(event)
-                                }
-                              />
-                            </div>
-                          </div>
                         </div>
                       </div>
                     </>

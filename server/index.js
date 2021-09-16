@@ -4,9 +4,6 @@ const http = require("http");
 const cors = require("cors");
 const server = http.createServer(app);
 
-const newGame = require("./lib/blackjack");
-const session = new Set();
-const game = newGame();
 const { PORT } = require("./data");
 const { addUser, removeUser, getUser, getUsersInRoom } = require("./users.js");
 const path = require("path");
