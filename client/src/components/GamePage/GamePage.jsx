@@ -207,12 +207,14 @@ const GamePage = (props) => {
         setButtonState({ ...buttonState });
         setWinner(turn);
 
-        socket.emit("updateGameState", {
-          gameOver: true,
-          turn: "Player 1",
-          player1Deck: [...player1Deck],
-          player2Deck: [...player2Deck],
-        });
+        setTimeout(() => {
+          socket.emit("updateGameState", {
+            gameOver: true,
+            turn: "Player 1",
+            player1Deck: [...player1Deck],
+            player2Deck: [...player2Deck],
+          });
+        }, 1000);
       } else if (player1Score > 21) {
         bust();
       }
