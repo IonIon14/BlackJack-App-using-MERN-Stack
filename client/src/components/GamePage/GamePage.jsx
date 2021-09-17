@@ -80,6 +80,7 @@ const GamePage = (props) => {
   const [buttonState, setButtonState] = useState({
     hitDisabled: false,
     standDisabled: false,
+    resetDisabled: true,
   });
 
   const dealCard = (dealType, value, suit) => {
@@ -139,6 +140,37 @@ const GamePage = (props) => {
     setMessage("Busted");
   }, []);
 
+  const randomNumber = (min, max) => {
+    return Math.random() * (max - min) + min;
+  };
+
+  const resetGame = () => {
+    console.log(deck.splice(0, 1));
+    let index = randomNumber(0, cardPack.length - 1);
+    if (gameOver === true)
+      if (cardPack[0].value === "A" || cardPack[1].value === "A") {
+        socket.emit("initGameState", {
+          gameOver: false,
+          turn: "Player 1",
+          player1Deck: [cardPack[0]],
+          player2Deck: [cardPack[1]],
+          player1Score: 11,
+          player2Score: 11,
+        });
+      } else {
+        socket.emit("initGameState", {
+          gameOver: false,
+          turn: "Player 1",
+          player1Deck: [cardPack[0]],
+          player2Deck: [cardPack[1]],
+          player1Score: Number(cardPack[0].value) || 10,
+          player2Score: Number(cardPack[1].value) || 10,
+        });
+      }
+
+    console.log(player1Deck, player2Deck);
+  };
+
   const checkWin = () => {
     if (
       (player1Score > player2Score && player1Score < 21) ||
@@ -149,6 +181,7 @@ const GamePage = (props) => {
       setWinner("Player 1");
       playWinningSound();
       setGameOver(true);
+      buttonState.resetDisabled = false;
       socket.emit("updateGameState", {
         gameOver: true,
         winner: "Player 1",
@@ -267,9 +300,9 @@ const GamePage = (props) => {
   useEffect(() => {
     const shuffledCards = shuffleCards(cardPack);
 
-    const player1Deck = shuffledCards.splice(0, 2);
+    const player1Deck = shuffledCards.splice(0, 1);
 
-    const player2Deck = shuffledCards.splice(0, 2);
+    const player2Deck = shuffledCards.splice(0, 1);
 
     socket.emit("initGameState", {
       gameOver: false,
@@ -443,6 +476,14 @@ const GamePage = (props) => {
                 <Link to="/">
                   <button className="game-button red">QUIT</button>
                 </Link>
+
+                <button
+                  className="game-button green"
+                  onClick={() => resetGame()}
+                  disabled={gameOver === false}
+                >
+                  RESET
+                </button>
               </div>
             </span>
           </div>

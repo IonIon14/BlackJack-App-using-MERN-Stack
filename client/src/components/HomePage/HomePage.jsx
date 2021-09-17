@@ -26,7 +26,7 @@ const HomePage = () => {
             onChange={(e) => setRoomCode(e.target.value)}
           />
           <span class="focus-border"></span>
-          <Link to={`/play?roomCode=${roomCode}`}>
+          <Link to={`/lobby?roomCode=${roomCode}`}>
             <button
               className="game-button green"
               onClick={() => {
@@ -39,7 +39,7 @@ const HomePage = () => {
           </Link>
           <h1>OR</h1>
           <div className="homepage-create">
-            <Link to={`/play?roomCode=${randomCodeGenerator(5)}`}>
+            <Link to={`/lobby?roomCode=${randomCodeGenerator(5)}`}>
               <button
                 className="game-button orange"
                 onClick={() => {
