@@ -58,6 +58,7 @@
     font-size: 2rem;
     color: white;
     margin: 0;
+    font-family: Georgia, "Times New Roman", Times, serif;
 }
 .player1Deck {
     display: flex;
@@ -100,9 +101,7 @@
 
     .card-back {
         width: 6rem;
-
         cursor: pointer;
-        float: right;
     }
 }
 .game-button {

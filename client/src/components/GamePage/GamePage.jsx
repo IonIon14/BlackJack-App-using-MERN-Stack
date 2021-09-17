@@ -80,7 +80,6 @@ const GamePage = (props) => {
   const [buttonState, setButtonState] = useState({
     hitDisabled: false,
     standDisabled: false,
-    resetDisabled: true,
   });
 
   const dealCard = (dealType, value, suit) => {
@@ -108,10 +107,9 @@ const GamePage = (props) => {
     if (deck.length > 0) {
       const randomIndex = Math.floor(Math.random() * deck.length);
       const card = deck[randomIndex];
-      console.log("Card is", card);
       deck.splice(randomIndex, 1);
       setDeck([...deck]);
-      console.log("Remaining Cards:", deck.length);
+
       switch (card.suit) {
         case "S":
           dealCard(dealType, card.value, card.suit);
@@ -136,7 +134,7 @@ const GamePage = (props) => {
   const bust = useCallback(() => {
     buttonState.hitDisabled = true;
     buttonState.standDisabled = true;
-    buttonState.resetDisabled = false;
+
     setButtonState({ ...buttonState });
     setMessage("Busted");
   }, []);
@@ -240,7 +238,7 @@ const GamePage = (props) => {
   const stand = () => {
     buttonState.hitDisabled = true;
     buttonState.standDisabled = true;
-    buttonState.resetDisabled = false;
+
     if (turn === "Player 1") {
       socket.emit("updateGameState", {
         gameOver: false,
@@ -259,7 +257,7 @@ const GamePage = (props) => {
         player2StandClick: true,
       });
     }
-    if (player1StandClick && player1StandClick) {
+    if (player1StandClick && player2StandClick) {
       setTimeout(() => {
         checkWin();
       }, 1000);
@@ -410,32 +408,6 @@ const GamePage = (props) => {
     });
   }, []);
 
-  const resetGame = () => {
-    console.clear();
-    setDeck(cardPack);
-
-    setPlayer1Score(0);
-    setPlayer1Count(0);
-
-    setPlayer2Score(0);
-    setPlayer2Count(0);
-
-    setMessage(message);
-    setButtonState({
-      hitDisabled: false,
-      standDisabled: false,
-      resetDisabled: true,
-    });
-    socket.emit("initGameState", {
-      gameOver: false,
-      turn: "Player 1",
-      player1Deck: [...player1Deck],
-      player2Deck: [...player2Deck],
-      player1Score,
-      player2Score,
-    });
-  };
-
   return (
     <div className="Game backgroundPlay">
       {!roomFull ? (
@@ -471,9 +443,6 @@ const GamePage = (props) => {
                 <Link to="/">
                   <button className="game-button red">QUIT</button>
                 </Link>
-                <button className="game-button red" onClick={() => resetGame()}>
-                  RESET
-                </button>
               </div>
             </span>
           </div>

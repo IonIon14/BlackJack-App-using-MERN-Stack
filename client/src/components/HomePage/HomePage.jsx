@@ -21,9 +21,11 @@ const HomePage = () => {
         <div className="homepage-form">
           <input
             type="text"
+            className="formInput"
             placeholder="Game Code"
             onChange={(e) => setRoomCode(e.target.value)}
           />
+          <span class="focus-border"></span>
           <Link to={`/play?roomCode=${roomCode}`}>
             <button
               className="game-button green"

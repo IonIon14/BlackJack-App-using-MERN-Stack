@@ -23,12 +23,15 @@ $xl: 1200px;
             display: flex;
             justify-content: center;
             margin-top: 50px;
-            input {
+            > input {
                 font-size: 20px;
                 width: 150px;
                 line-height: 1.5em;
                 height: 40px;
                 align-self: center;
+                border: 2px solid black;
+                font-family: Georgia, "Times New Roman", Times, serif;
+                text-indent: 10px;
             }
 
             @media screen and (max-width: $sm) {
